@@ -1,0 +1,178 @@
+{
+  "name": "weather report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 6
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1152,
+        -160
+      ],
+      "id": "c75deacb-987a-4b8e-9b1d-e6cfd5e82bcc",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AI output from Gemini (already formatted)\nconst aiText = $json.message || $json.text || \"No suggestion available\";\n\n// Return as-is for next node\nreturn [{ json: { message: aiText } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -192
+      ],
+      "id": "f48f4e17-2576-4fd4-8abb-0dd6888cb92c",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "bassma.ibarahiimm@gmail.com",
+        "subject": "Daily Weather Report",
+        "message": "={{ $json[\"message\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -192,
+        -128
+      ],
+      "id": "15918a60-293a-49b3-acc0-3d9694839976",
+      "name": "Sent weather report",
+      "webhookId": "e4dbf087-61f4-433b-8682-3b42bc7bae74",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "n4vYszyODg5MVviD",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Format your answer exactly like this:\n\nToday's Weather:\n🌡️ Temp: {{$json[\"main\"][\"temp\"]}}°C\n☁️ Condition: {{$json[\"weather\"][0][\"description\"]}}\n💨 Wind: {{$json[\"wind\"].speed}} m/s\n\nOutfit Suggestion for Today:\n[Your short, friendly outfit recommendation here]\nHave a great day!\n\nUse the current weather from the input JSON.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -736,
+        -112
+      ],
+      "id": "b59134a3-3336-491e-a526-e3327f4f8254",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        32
+      ],
+      "id": "a516e823-c84f-44dc-8170-74f025c63a9a",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "dWYaurCTv34Gn76K",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.openweathermap.org/data/2.5/weather?q=Cairo&appid=06c338840a1d449a720fee42217f5a42&units=metric",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -944,
+        -240
+      ],
+      "id": "a3005d45-712a-46e3-bb34-1903b410e4ba",
+      "name": "weather api"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "weather api",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Sent weather report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "weather api": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c185c58f-2605-48e6-909e-b8b150eaa700",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bb7438e85e7c5f87a54fc8c73047fcddd1732fe4396fbf4f0d1f449d6b95347c"
+  },
+  "id": "ycLWKChZyN2FJAwY",
+  "tags": []
+}
